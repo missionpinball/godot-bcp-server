@@ -37,7 +37,7 @@ func _init() -> void:
 func add_player(kwargs: Dictionary) -> void:
   players.append({
     "score": 0,
-    "player_num": kwargs.player_num
+    "number": kwargs.player_num
   })
   emit_signal("player_added")
 
