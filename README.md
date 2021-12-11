@@ -26,7 +26,8 @@ _Note: Godot BCP Server uses custom class names for extending support to your pr
 Godot BCP Server provides base classes for two Autoload instances: **BCPServer** for the socket connection to MPF, and **MPFGame** for game, player, machine, and setting values.
 
 ## BCPServer Class
-_This class manages all connectio
+_This class manages the connection to MPF and all data coming in and out. For optimal performance, it runs
+in a separate thread from the main Godot instance._
 
 Create a new autoload script (e.g. _/autoloads/server.gd_) and add `extends BCPServer` to the top of the file.
 
