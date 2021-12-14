@@ -293,8 +293,6 @@ func _thread_poll(_userdata=null) -> void:
             call_deferred("deferred_game", "update_settings", message)
           "signal":
             call_deferred("emit_signal", message.name, message)
-          "sounds_play":
-            MusicPlayer.on_sounds_play(message.settings)
           "sounds_clear":
             pass
           "timer":

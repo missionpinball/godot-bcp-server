@@ -3,6 +3,8 @@
 # Original code © 2021 Anthony van Winkle / Paradigm Tilt
 # Released under the MIT License
 
+# Add this file as an Autoload in your Godot project for MPF-style logging.
+# Override the log() method to change the output formatting.
 
 extends Node
 
@@ -18,28 +20,28 @@ func setLevel(level: int) -> void:
 
 func verbose(message: String, args=null) -> void:
   if _level <= VERBOSE:
-    self._print("VERBOSE", message, args)
+    self.log("VERBOSE", message, args)
 
 func debug(message: String, args=null) -> void:
   if _level <= DEBUG:
-    self._print("DEBUG", message, args)
+    self.log("DEBUG", message, args)
 
 func info(message: String, args=null) -> void:
   if _level <= INFO:
-    self._print("INFO", message, args)
+    self.log("INFO", message, args)
 
 func warn(message: String, args=null) -> void:
   if _level <= WARN:
-    self._print("WARN", message, args)
+    self.log("WARN", message, args)
 
 func error(message: String, args=null) -> void:
-  self._print("ERROR", message, args)
+  self.log("ERROR", message, args)
 
 func fail(message: String, args=null) -> void:
   self.error(message, args)
   assert(false, message % args)
 
-func _print(level: String, message: String, args=null) -> void:
+func log(level: String, message: String, args=null) -> void:
   # TODO: Incorporate ProjectSettings.get_setting("logging/file_logging/enable_file_logging")
   # Get datetime to dictionary
   var dt=OS.get_datetime()
