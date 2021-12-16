@@ -41,9 +41,12 @@ onready var _mutex := Mutex.new()
 
 func _ready() -> void:
   # An inheritor has the opportunity to define logger with the Log instance of
-  # their choice in the inheritor's _init() method. If they do not, use the
-  # included BCP Server logger.
+  # their choice, using the inheritor's _init() method.
   if not logger:
+    # If no custom logger is defined, look for a global autoload named 'Log'
+    logger = get_node_or_null("/root/Log")
+  if not logger:
+    # If no autoload is found, instantiate a private instance of the logger
     logger = preload("log.gd").new()
 
   # Wait until a server is actively listening before polling for clients
@@ -224,6 +227,10 @@ func _thread_poll(_userdata=null) -> void:
           continue
         logger.verbose("Received BCP command: %s", message_raw)
         var message: Dictionary = _bcp_parse.parse(message_raw)
+
+        # Log any errors
+        if message.error:
+          logger.error(message.error)
 
         # Known signals can be broadcast with arbitrary payloads
         if message.cmd in auto_signals:

@@ -7,6 +7,7 @@
 # Override the log() method to change the output formatting.
 
 extends Node
+class_name Logger
 
 var VERBOSE := 0
 var DEBUG := 10

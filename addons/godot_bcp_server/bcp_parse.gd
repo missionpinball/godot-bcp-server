@@ -33,7 +33,7 @@ static func string_to_obj(message: String, cmd: String) -> Dictionary:
     if json.error == OK:
       return json.result
     else:
-      Log.error("Error %s parsing trigger: %s" % [json.error, message])
+      result.error = "Error %s parsing trigger: %s" % [json.error, message]
       return result
 
   var chunks = message.split("&")

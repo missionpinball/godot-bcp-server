@@ -265,6 +265,56 @@ Game.pluralize("Hit %s Target%%s to Complete", 1)
 ```
 
 
+## Log Autoload
+_The Log autoload scripts provides a convenient, MPF-style logging interface with
+matching levels and output formatting._
+
+### Option 1: No Logging
+You can choose not to incorporate the included log script in your project. The
+BCP Server module requires logging, so it will instantiate its own logger instance.
+
+### Option 2: Autoload Logging
+In your Godot project settings, you can include _addons/godot_bcp_server/log.gd_
+to gain access to a global Log instance with methods for logging to the console
+and files.
+
+The default levels are VERBOSE (0), DEBUG (10), INFO (20), and WARN (30). Messages
+at the error and fail level will always be logged. You can specify the level
+at any time by calling the `setLevel` method. By default, the log logs at level INFO.
+
+```
+Log.setLevel(10)
+```
+
+Like MPF, the logger uses levels to determine the output. It includes methods
+`verbose`, `debug`, `info`, `warn`, `error`, and `fail`, each accepting parameters for
+the message and values. It is recommended to pass the message string and values
+separately rather than combining the string when you call it—this way, calls
+below the output level won't waste time on the string formatting.
+
+```
+Log.info("Player var %s updated, new value %s", [var_name, value])
+```
+
+### Option 3: Extend a Custom Log
+
+If you prefer to customize your logger, you can implement your own script with
+`extends Logger`. Any of the above methods can be overridden, and you can also
+change the output of the log messages by overriding the log output method.
+
+```
+func log(level_name: String, message: String, args=null) -> void:
+  print(...)  # Output whatever string you like
+```
+
+To enable global access to your custom logger, save your script and add it to
+your project as an autoload. If your autoload has the global variable name `Log`,
+the BCP Server will detect and use your logger instead of the built-in one.
+
+If you do not wish to name your autoload `Log`, you can still instruct the BCP
+Server to use it by assigning your logger as `self.logger` in your custom Server
+class `_init()` method.
+
 # Contributing
 
 User contributions are welcome!
