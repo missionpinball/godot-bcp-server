@@ -81,7 +81,7 @@ func update_machine(kwargs: Dictionary) -> void:
       emit_signal("credits", name, value)
   # If this machine var is a setting, update the value of the setting
   if settings.has(name):
-    settings[name] = value
+    settings[name].value = value
 
 func update_modes(kwargs: Dictionary) -> void:
   active_modes = []

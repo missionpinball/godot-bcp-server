@@ -299,7 +299,7 @@ Log.info("Player var %s updated, new value %s", [var_name, value])
 ### Option 3: Extend a Custom Log
 
 If you prefer to customize your logger, you can implement your own script with
-`extends Logger`. Any of the above methods can be overridden, and you can also
+`extends LoggerBase`. Any of the above methods can be overridden, and you can also
 change the output of the log messages by overriding the log output method.
 
 ```
