@@ -58,7 +58,6 @@ func retrieve_preloaded_scene(path: String) -> PackedScene:
   if preloaded_scenes.has(path):
     scene = preloaded_scenes[path]
   else:
-    Log.warn("Attempting to retrieve path '%s' which was not preloaded", path)
     scene = load(path)
   preloaded_scenes = {}
   return scene
@@ -70,16 +69,19 @@ func start_player_turn(kwargs: Dictionary) -> void:
 
 
 func update_machine(kwargs: Dictionary) -> void:
+  var name = kwargs.name
   var value = kwargs.value
   if value is String:
     value = value.http_unescape()
-  if kwargs.name.begins_with("audit"):
-    audits[kwargs.name] = value
+  if name.begins_with("audit"):
+    audits[name] = value
   else:
-    machine_vars[kwargs.name] = value
-    if kwargs.name.begins_with("credits"):
-      emit_signal("credits", kwargs.name, kwargs.value)
-
+    machine_vars[name] = value
+    if name.begins_with("credits"):
+      emit_signal("credits", name, value)
+  # If this machine var is a setting, update the value of the setting
+  if settings.has(name):
+    settings[name] = value
 
 func update_modes(kwargs: Dictionary) -> void:
   active_modes = []
@@ -114,6 +116,8 @@ func update_settings(result: Dictionary) -> void:
     s.default = option[4]
     s.type = option[6]
     s.options = {}
+    # By default, store the setting as the default value
+    s.value = s.default
     # The default interpretation uses strings as keys, convert to ints
     for key in option[5].keys():
       s.options[int(key)] = option[5][key]

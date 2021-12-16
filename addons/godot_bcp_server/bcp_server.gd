@@ -16,8 +16,9 @@ signal service(payload)
 var auto_signals = []
 # A list of event names to register in MPF
 var registered_events = []
-# A logger instance
+# A logger instance and possible private instance
 var logger
+var _logger
 # The port we will listen on
 var port := 5052
 # The polling frequency to poll the server for data
@@ -47,7 +48,8 @@ func _ready() -> void:
     logger = get_node_or_null("/root/Log")
   if not logger:
     # If no autoload is found, instantiate a private instance of the logger
-    logger = preload("log.gd").new()
+    _logger = preload("log.gd").new()
+    logger = _logger
 
   # Wait until a server is actively listening before polling for clients
   set_process(false)
@@ -55,6 +57,9 @@ func _ready() -> void:
 
 func _exit_tree():
   self.stop(true)
+  # If a private instance of the logger was created, remove it from memory
+  if _logger:
+    _logger.queue_free()
 
 
 func _input(ev: InputEvent) -> void:
@@ -229,7 +234,7 @@ func _thread_poll(_userdata=null) -> void:
         var message: Dictionary = _bcp_parse.parse(message_raw)
 
         # Log any errors
-        if message.error:
+        if message.has("error"):
           logger.error(message.error)
 
         # Known signals can be broadcast with arbitrary payloads
