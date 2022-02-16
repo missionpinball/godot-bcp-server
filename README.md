@@ -69,8 +69,13 @@ func _init() -> void:
 ```
 
 ### Method `listen() -> void:`
-At some point in your game's startup sequence you need to call `self.listen()` on
-your server to open a port and begin listening for an MPF connection.
+At some point in your game's startup sequence you need to call `Server.listen()`
+on your server to open a port and begin listening for an MPF connection. The name
+of the server instance will be based on your autoload's name.
+
+`listen()` should be called from your active scene when the Godot MC is ready to
+connect to MPF, or in your main scene's `_ready()` method if you want to connect
+immediately.
 
 ### Method `on_message(message):`
 The on_method event allows you to define custom callback methods for events

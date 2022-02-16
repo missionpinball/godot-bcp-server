@@ -138,6 +138,10 @@ func deferred_scene_to(scene_pck: Resource) -> void:
 
 ## Call this method from your main scene to open a port for MPF connections
 func listen() -> void:
+  # The logger is connected in _ready(), so if it's not present, we're not ready
+  if not logger:
+    printerr("BCPServer listen() called before it is ready (no logger instance).")
+    return
   _thread = Thread.new()
   var err = _server.listen(port)
   if err != OK:
