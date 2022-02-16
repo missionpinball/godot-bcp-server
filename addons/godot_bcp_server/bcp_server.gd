@@ -162,6 +162,10 @@ func send_service(subcommand: String, values: PoolStringArray = []) -> void:
   var suffix: String = "&values=%s" % values.join(",") if values else ""
   self._send("service?subcommand=%s&sort=bool:false%s" % [subcommand, suffix])
 
+## Set a machine variable in MPF
+func set_machine_var(name: String, value) -> void:
+  self._send("set_machine_var?name=%s&value=%s" % [name, self.wrap_value_type(value)])
+
 ## Disconnect the BCP server
 func stop(is_exiting: bool = false) -> void:
   # Lock the mutex to prevent the BCP thread from polling
@@ -178,6 +182,17 @@ func stop(is_exiting: bool = false) -> void:
   if not is_exiting:
     self.deferred_scene("res://Main.tscn")
     self.on_disconnect()
+
+# Use the BCP syntax to define the type
+func wrap_value_type(value: String) -> String:
+  match typeof(value):
+    TYPE_BOOL:
+      value = "bool:%s" % value
+    TYPE_INT:
+      value = "int:%s" % value
+    TYPE_REAL:
+      value = "float:%s" % value
+  return value
 
 ###
 # The following public methods can be overridden in a subclass for game-specific behavior
