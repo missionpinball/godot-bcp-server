@@ -138,10 +138,6 @@ func deferred_scene_to(scene_pck: Resource) -> void:
 
 ## Call this method from your main scene to open a port for MPF connections
 func listen() -> void:
-  # The logger is connected in _ready(), so if it's not present, we're not ready
-  if not logger:
-    printerr("BCPServer listen() called before it is ready (no logger instance).")
-    return
   _thread = Thread.new()
   var err = _server.listen(port)
   if err != OK:
@@ -172,6 +168,8 @@ func stop(is_exiting: bool = false) -> void:
   _mutex.lock()
   _server.stop()
   if _client:
+    # Say goodbye to MPF!
+    _send("goodbye")
     _client.disconnect_from_host()
     _client = null
   _mutex.unlock()
@@ -184,7 +182,7 @@ func stop(is_exiting: bool = false) -> void:
     self.on_disconnect()
 
 # Use the BCP syntax to define the type
-func wrap_value_type(value: String) -> String:
+func wrap_value_type(value) -> String:
   match typeof(value):
     TYPE_BOOL:
       value = "bool:%s" % value

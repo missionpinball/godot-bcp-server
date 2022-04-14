@@ -16,6 +16,8 @@ static func parse(message: String) -> Dictionary:
   else:
     cmd = message
   if cmd == "trigger":
+    # This creates a standard signal "mpf_timer" so any
+    # timer event doesn't need an individual signal
     if result.name.substr(0,6) == "timer_":
       cmd = "timer"
     elif result.name.substr(0,8) == "service_" and result.name != "service_mode_entered":

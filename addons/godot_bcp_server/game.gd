@@ -21,6 +21,8 @@ var player: Dictionary = {}
 var players := []
 # A lookup for preloaded scenes
 var preloaded_scenes: Dictionary
+# Some scenes should always be preloaded
+var persisted_scenes := []
 # All of the machine settings
 var settings: Dictionary = {}
 
@@ -28,6 +30,7 @@ var settings: Dictionary = {}
 signal player_update(variable_name, value)
 signal player_added
 signal credits
+signal volume
 
 
 func _init() -> void:
@@ -41,25 +44,33 @@ func add_player(kwargs: Dictionary) -> void:
   })
   emit_signal("player_added")
 
-
-func preload_scene(path: String) -> void:
+# Called with a dynamic path value, must use load()
+func preload_scene(path: String, delay_secs: int = 0, persist: bool = false) -> void:
   if not preloaded_scenes.has(path):
+    if delay_secs:
+      yield(get_tree().create_timer(delay_secs), "timeout")
     preloaded_scenes[path] = load(path)
+    if persist and not path in persisted_scenes:
+      persisted_scenes.push_back(path)
 
+# Called with a fixed value, can use preload()
+func stash_preloaded_scene(path: String, scene: PackedScene):
+  preloaded_scenes[path] = scene
 
 func reset() -> void:
   players = []
   player = {}
-  preloaded_scenes = {}
-
 
 func retrieve_preloaded_scene(path: String) -> PackedScene:
   var scene: PackedScene
   if preloaded_scenes.has(path):
     scene = preloaded_scenes[path]
   else:
+    Log.warn("Preloaded scene MISS %s", path)
     scene = load(path)
-  preloaded_scenes = {}
+  # Clear the reference to the scene so it can be garbage collected after the scene is done
+  if not path in persisted_scenes:
+    preloaded_scenes.erase(path)
   return scene
 
 
@@ -79,6 +90,8 @@ func update_machine(kwargs: Dictionary) -> void:
     machine_vars[name] = value
     if name.begins_with("credits"):
       emit_signal("credits", name, value)
+    elif name.ends_with("_volume"):
+      emit_signal("volume", name, value)
   # If this machine var is a setting, update the value of the setting
   if settings.has(name):
     settings[name].value = value
