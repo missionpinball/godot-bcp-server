@@ -15,6 +15,8 @@ var audits := {}
 var auto_signal_vars := []
 # All of the machine variables
 var machine_vars := {}
+# The number of players in the game
+var num_players: int = 0
 # The current player
 var player: Dictionary = {}
 # All of the players in the current game
@@ -30,7 +32,7 @@ var settings: Dictionary = {}
 signal player_update(variable_name, value)
 signal player_added
 signal credits
-signal volume
+signal volume(track, value, change)
 
 
 func _init() -> void:
@@ -42,6 +44,7 @@ func add_player(kwargs: Dictionary) -> void:
     "score": 0,
     "number": kwargs.player_num
   })
+  num_players = players.size()
   emit_signal("player_added")
 
 # Called with a dynamic path value, must use load()
@@ -91,7 +94,7 @@ func update_machine(kwargs: Dictionary) -> void:
     if name.begins_with("credits"):
       emit_signal("credits", name, value)
     elif name.ends_with("_volume"):
-      emit_signal("volume", name, value)
+      emit_signal("volume", name, value, kwargs.get("change", 0))
   # If this machine var is a setting, update the value of the setting
   if settings.has(name):
     settings[name].value = value

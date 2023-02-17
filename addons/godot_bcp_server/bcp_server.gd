@@ -164,6 +164,7 @@ func set_machine_var(name: String, value) -> void:
 
 ## Disconnect the BCP server
 func stop(is_exiting: bool = false) -> void:
+  Log.info("Shutting down BCP Server and %s", "will not restart" if is_exiting else "awaiting new connection")
   # Lock the mutex to prevent the BCP thread from polling
   _mutex.lock()
   _server.stop()
@@ -196,7 +197,7 @@ func wrap_value_type(value) -> String:
 # The following public methods can be overridden in a subclass for game-specific behavior
 ###
 
-func on_ball_start() -> void:
+func on_ball_start(ball, player_num) -> void:
   pass
 
 func on_ball_end() -> void:
@@ -267,7 +268,7 @@ func _thread_poll(_userdata=null) -> void:
           "ball_end":
             call_deferred("on_ball_end")
           "ball_start":
-            call_deferred("on_ball_start")
+            call_deferred("on_ball_start", message.ball, message.player_num)
           "goodbye":
             _send("goodbye")
             call_deferred("stop")
@@ -312,7 +313,7 @@ func _thread_poll(_userdata=null) -> void:
             _send("register_trigger?event=high_score_enter_initials")
             _send("register_trigger?event=high_score_award_display")
             # Custom events
-            for e in self.registered_events:
+            for e in self.registered_events + self.auto_signals:
               _send("register_trigger?event=%s" % e)
           "service":
             call_deferred("emit_signal", "service", message)

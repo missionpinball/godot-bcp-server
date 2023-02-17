@@ -10,15 +10,23 @@ extends Node
 class_name Logger
 
 
-var VERBOSE := 0
+var VERBOSE := 1
 var DEBUG := 10
 var INFO := 20
 var WARN := 30
 
 var _level: int = INFO
+var log_name: String = ""
+
+func _init(name: String = "", level: int = INFO) -> void:
+  self.log_name = "<%s> " % name if name else ""
+  self._level = level
 
 func setLevel(level: int) -> void:
   _level = level
+
+func getLevel() -> int:
+  return _level
 
 func verbose(message: String, args=null) -> void:
   if _level <= VERBOSE:
@@ -48,4 +56,4 @@ func _log(level: String, message: String, args=null) -> String:
   # Get datetime to dictionary
   var dt=OS.get_datetime()
   # Format and print with message
-  return "%s %02d:%02d:%02d.%03d %s" % [level, dt.hour,dt.minute,dt.second, OS.get_system_time_msecs() % 1000, message if args == null else (message % args)]
+  return "%s %02d:%02d:%02d.%03d %s%s" % [level, dt.hour,dt.minute,dt.second, OS.get_system_time_msecs() % 1000, log_name, message if args == null else (message % args)]

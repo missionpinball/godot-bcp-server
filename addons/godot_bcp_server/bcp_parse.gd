@@ -54,5 +54,5 @@ static func string_to_obj(message: String, cmd: String) -> Dictionary:
       else:
         result[pair[0]] = raw_value
     else:
-      result[pair[0]] = raw_value
+      result[pair[0]] = raw_value.http_unescape()
   return result
