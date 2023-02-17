@@ -4,7 +4,7 @@
 # Released under the MIT License
 
 
-tool
+@tool
 extends EditorPlugin
 
 func _init():

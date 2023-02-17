@@ -29,12 +29,12 @@ var _bcp_parse = preload("bcp_parse.gd")
 # A connected MPF Client
 var _client: StreamPeerTCP
 # Our WebSocketServer instance
-var _server: = TCP_Server.new()
+var _server: TCPServer = TCPServer.new()
 # A separate thread for running the BCP Server
 var _thread: Thread
 
 # A mutex for managing threadsafe operations
-onready var _mutex := Mutex.new()
+@onready var _mutex := Mutex.new()
 
 ###
 # Built-in virtual methods
@@ -68,13 +68,13 @@ func _input(ev: InputEvent) -> void:
   elif Input.is_action_pressed("ui_cancel"):
     # Cannot use quit() method because it won't cleanly shut down threads
     # Instead, send a notification to the main thread to shut down
-    get_tree().notification(MainLoop.NOTIFICATION_WM_QUIT_REQUEST)
+    get_tree().notification(NOTIFICATION_WM_CLOSE_REQUEST)
     return
 
   for action in InputMap.get_actions():
     if ev.is_action(action):
-      get_tree().set_input_as_handled()
-      var ev_payload: PoolStringArray = action.split("?")
+      get_tree().get_root().set_input_as_handled()
+      var ev_payload: PackedStringArray = action.split("?")
       if ev_payload.size() > 1:
         # Godot InputMap does not support the = and : characters,
         # which the BCP protocol requires. InputMap values must be
@@ -107,7 +107,7 @@ func _process(_delta: float) -> void:
   if not _client and _server.is_connection_available() == true:
     logger.info("Client connection is available!")
     _client = _server.take_connection()
-    var err = _thread.start(self, "_thread_poll", null, 0)
+    var err = _thread.start(self._thread_poll, 0)
     if err != OK:
       logger.error("Error spawning BCP poll thread: %s", err)
     else:
@@ -119,10 +119,12 @@ func _process(_delta: float) -> void:
 ###
 
 func deferred_game(method: String, result=null) -> void:
+  var callable = Callable(Game, method)
+  print("DEFERRED calling method %s on game singleton with result %s" % [method, result])
   if result:
-    funcref(Game, method).call_func(result)
+    callable.call(result)
   else:
-    funcref(Game, method).call_func()
+    callable.call()
 
 
 func deferred_game_player(result) -> void:
@@ -154,8 +156,8 @@ func send_event(event_name: String) -> void:
   _send("trigger?name=%s" % event_name)
 
 ## Send a specialized Service Mode command to MPF
-func send_service(subcommand: String, values: PoolStringArray = []) -> void:
-  var suffix: String = "&values=%s" % values.join(",") if values else ""
+func send_service(subcommand: String, values: PackedStringArray = []) -> void:
+  var suffix: String = "&values=%s" % ",".join(values) if values else ""
   self._send("service?subcommand=%s&sort=bool:false%s" % [subcommand, suffix])
 
 ## Set a machine variable in MPF
@@ -189,7 +191,7 @@ func wrap_value_type(value) -> String:
       value = "bool:%s" % value
     TYPE_INT:
       value = "int:%s" % value
-    TYPE_REAL:
+    TYPE_FLOAT:
       value = "float:%s" % value
   return value
 
@@ -209,7 +211,7 @@ func on_connect() -> void:
 func on_disconnect() -> void:
   pass
 
-func on_input(event_payload: PoolStringArray) -> void:
+func on_input(event_payload: PackedStringArray) -> void:
   pass
 
 func on_message(message: Dictionary) -> Dictionary:
@@ -229,16 +231,16 @@ func _send(message: String) -> void:
   if not _client:
     return
   logger.debug("Sending BCP Message: %s" % message)
-  _client.put_data(("%s\n" % message).to_ascii())
+  _client.put_data(("%s\n" % message).to_ascii_buffer())
 
 
 func _thread_poll(_userdata=null) -> void:
   # TBD: What is the optimal polling rate for the BCP client?
-  var start = OS.get_system_time_msecs()
+  var start = Time.get_ticks_msec()
   var delay = 1000/poll_fps
   while _client:
     # If the mutex is locked, the system is shutting down
-    if _mutex.try_lock() != OK:
+    if not _mutex.try_lock():
       return
     var bytes = _client.get_available_bytes()
     if not bytes:
@@ -246,7 +248,7 @@ func _thread_poll(_userdata=null) -> void:
     else:
       var messages := _client.get_string(bytes).split("\n")
       for message_raw in messages:
-        if not message_raw:
+        if message_raw.is_empty():
           continue
         logger.verbose("Received BCP command: %s", message_raw)
         var message: Dictionary = _bcp_parse.parse(message_raw)
@@ -259,9 +261,9 @@ func _thread_poll(_userdata=null) -> void:
         if message.cmd in auto_signals:
           message.cmd = "signal"
 
-        # If on_message() returns falsey, the message has been handled
+        # If on_message() returns empty, the message has been handled
         # and no further action is necessary.
-        if not self.on_message(message):
+        if self.on_message(message).is_empty():
           continue
 
         match message.cmd:

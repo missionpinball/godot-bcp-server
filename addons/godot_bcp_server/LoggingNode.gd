@@ -9,7 +9,7 @@ var logger: Logger
 
 
 func configure_logging(level: int = 0):
-  self.logger = preload("res://addons/godot_bcp_server/log.gd").new(self.name)
+  self.logger = preload("res://addons/godot_bcp_server/log.gd").new()
   self.logger.setLevel(level if level else Log.getLevel())
 
 func _exit_tree():

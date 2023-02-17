@@ -51,7 +51,7 @@ func add_player(kwargs: Dictionary) -> void:
 func preload_scene(path: String, delay_secs: int = 0, persist: bool = false) -> void:
   if not preloaded_scenes.has(path):
     if delay_secs:
-      yield(get_tree().create_timer(delay_secs), "timeout")
+      await get_tree().create_timer(delay_secs).timeout
     preloaded_scenes[path] = load(path)
     if persist and not path in persisted_scenes:
       persisted_scenes.push_back(path)
@@ -83,10 +83,11 @@ func start_player_turn(kwargs: Dictionary) -> void:
 
 
 func update_machine(kwargs: Dictionary) -> void:
-  var name = kwargs.name
-  var value = kwargs.value
+  print("UPDATE MACHINE with kwargs: %s" % kwargs)
+  var name = kwargs.get("name")
+  var value = kwargs.get("value")
   if value is String:
-    value = value.http_unescape()
+    value = value.uri_decode()
   if name.begins_with("audit"):
     audits[name] = value
   else:
@@ -101,8 +102,8 @@ func update_machine(kwargs: Dictionary) -> void:
 
 func update_modes(kwargs: Dictionary) -> void:
   active_modes = []
-  while kwargs.running_modes:
-    active_modes.push_back(kwargs.running_modes.pop_back()[0])
+  while kwargs.get("running_modes"):
+    active_modes.push_back(kwargs["running_modes"].pop_back()[0])
 
 
 func update_player(kwargs: Dictionary) -> void:
@@ -123,7 +124,7 @@ func update_player(kwargs: Dictionary) -> void:
 func update_settings(result: Dictionary) -> void:
   # TODO: Determine if settings changes are individual or the whole package
   settings = {}
-  for option in result.settings:
+  for option in result.get("settings", []):
     var s := {}
     # [name, label, sort, machine_var, default, values, settingType ]
     s.label = option[1]

@@ -31,7 +31,7 @@ static func parse(message: String) -> Dictionary:
 static func string_to_obj(message: String, cmd: String) -> Dictionary:
   var result := {}
   if message.substr(0, 5) == "json=":
-    var json = JSON.parse(message.substr(5))
+    var json = JSON.parse_string(message.substr(5))
     if json.error == OK:
       return json.result
     else:
@@ -54,5 +54,5 @@ static func string_to_obj(message: String, cmd: String) -> Dictionary:
       else:
         result[pair[0]] = raw_value
     else:
-      result[pair[0]] = raw_value.http_unescape()
+      result[pair[0]] = raw_value.uri_decode()
   return result

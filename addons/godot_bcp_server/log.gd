@@ -54,6 +54,6 @@ func fail(message: String, args=null) -> void:
 func _log(level: String, message: String, args=null) -> String:
   # TODO: Incorporate ProjectSettings.get_setting("logging/file_logging/enable_file_logging")
   # Get datetime to dictionary
-  var dt=OS.get_datetime()
+  var dt=Time.get_datetime_dict_from_system()
   # Format and print with message
-  return "%s %02d:%02d:%02d.%03d %s%s" % [level, dt.hour,dt.minute,dt.second, OS.get_system_time_msecs() % 1000, log_name, message if args == null else (message % args)]
+  return "%s %02d:%02d:%02d.%03d %s%s" % [level, dt.hour,dt.minute,dt.second, int(Time.get_unix_time_from_system() * 1000) % 1000, log_name, message if args == null else (message % args)]
