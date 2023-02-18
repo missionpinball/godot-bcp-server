@@ -132,11 +132,11 @@ func deferred_game_player(result) -> void:
 
 
 func deferred_scene(scene_res: String) -> void:
-  get_tree().change_scene(scene_res)
+  get_tree().change_scene_to_file(scene_res)
 
 
 func deferred_scene_to(scene_pck: Resource) -> void:
-  get_tree().change_scene_to(scene_pck)
+  get_tree().change_scene_to_packed(scene_pck)
 
 ## Call this method from your main scene to open a port for MPF connections
 func listen() -> void:
@@ -177,7 +177,7 @@ func stop(is_exiting: bool = false) -> void:
     _client = null
   _mutex.unlock()
 
-  if _thread and _thread.is_active():
+  if _thread and _thread.is_started():
     _thread.wait_to_finish()
 
   if not is_exiting:
@@ -261,9 +261,9 @@ func _thread_poll(_userdata=null) -> void:
         if message.cmd in auto_signals:
           message.cmd = "signal"
 
-        # If on_message() returns empty, the message has been handled
+        # If on_message() returns null, the message has been handled
         # and no further action is necessary.
-        if self.on_message(message).is_empty():
+        if self.on_message(message) == null:
           continue
 
         match message.cmd:

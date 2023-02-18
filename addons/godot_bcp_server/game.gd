@@ -83,7 +83,6 @@ func start_player_turn(kwargs: Dictionary) -> void:
 
 
 func update_machine(kwargs: Dictionary) -> void:
-  print("UPDATE MACHINE with kwargs: %s" % kwargs)
   var name = kwargs.get("name")
   var value = kwargs.get("value")
   if value is String:
