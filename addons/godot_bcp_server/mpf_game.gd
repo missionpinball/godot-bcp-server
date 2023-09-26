@@ -142,7 +142,8 @@ func update_settings(result: Dictionary) -> void:
     s.type = option[6]
     settingType = s.type
     s.options = {}
-    # By default, store the setting as the default value
+    # By default, store the setting as the default value.
+    # This will be overridden later with a machine_var update
     s.value = s.default
     for key in option[5].keys():
       # Store the value so we can modify the key
@@ -161,9 +162,8 @@ func update_settings(result: Dictionary) -> void:
     if s.label == "brightness":
       for key in s.options.keys():
         s.options[key] = s.options[key].replace("%", "%%")
-    if not settings.has(s.type):
-      settings[s.type] = {}
-    settings[s.type][option[0]] = s
+    # Store all settings as root-level keys, regardless of settingType
+    settings[option[0]] = s
 
 ## Receive an integer value and return a comma-separated string
 static func comma_sep(n: int) -> String:
