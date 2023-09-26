@@ -179,8 +179,12 @@ func stop(is_exiting: bool = false) -> void:
     _thread.wait_to_finish()
 
   if not is_exiting:
-    self.deferred_scene("res://Main.tscn")
+    # Set an exit code so we know MPF is the cause of the exit
+    OS.exit_code = 6
     self.on_disconnect()
+    get_tree().quit()
+    # TODO: Add a configuration option to exit-on-disconnect and if false,
+    # call self.deferred_scene("res://Main.tscn") instead of quit()
 
 # Use the BCP syntax to define the type
 func wrap_value_type(value) -> String:

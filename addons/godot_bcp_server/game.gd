@@ -27,6 +27,9 @@ var preloaded_scenes: Dictionary
 var persisted_scenes := []
 # All of the machine settings
 var settings: Dictionary = {}
+# Some settings use floats as their keys. These settings are
+# not predictable, so explicitly provide the their names here.
+var settings_with_floats = []
 
 
 signal player_update(variable_name, value)
@@ -92,7 +95,7 @@ func update_machine(kwargs: Dictionary) -> void:
   else:
     machine_vars[name] = value
     if name.begins_with("credits"):
-      emit_signal("credits", name, value)
+      emit_signal("credits", name, kwargs)
     elif name.ends_with("_volume"):
       emit_signal("volume", name, value, kwargs.get("change", 0))
   # If this machine var is a setting, update the value of the setting
@@ -107,7 +110,7 @@ func update_modes(kwargs: Dictionary) -> void:
 
 func update_player(kwargs: Dictionary) -> void:
   var target_player: Dictionary = players[kwargs.player_num - 1]
-  # Ignore the initial values
+  # Set initial values without posting a change event
   if not target_player.has(kwargs.name):
     target_player[kwargs.name] = kwargs.value
   else:
@@ -121,28 +124,46 @@ func update_player(kwargs: Dictionary) -> void:
 
 
 func update_settings(result: Dictionary) -> void:
-  # TODO: Determine if settings changes are individual or the whole package
-  settings = {}
+  var settingType
   for option in result.settings:
     var s := {}
-    # [name, label, sort, machine_var, default, values, settingType ]
+    # Each setting comes as an array with the following fields:
+    # [name, label, sort, machine_var, default, values, settingType, key_type ]
+
     s.label = option[1]
     s.priority = option[2]
     s.variable = option[3]
-    s.default = option[4]
+    # Convert the setting value to the appropriate data type
+    var cvrt = funcref(self, "to_float") if s.variable in self.settings_with_floats else funcref(self, "to_int")
+    s.default = cvrt.call_func(option[4])
+    # Watch for true/false passed as strings, and convert to int 1 or 0
+    if typeof(s.default) == TYPE_STRING and s.default == "True":
+      s.default = 1
     s.type = option[6]
+    settingType = s.type
     s.options = {}
     # By default, store the setting as the default value
     s.value = s.default
-    # The default interpretation uses strings as keys, convert to ints
     for key in option[5].keys():
-      s.options[int(key)] = option[5][key]
+      # Store the value so we can modify the key
+      var value = option[5][key]
+      # The parser converts "None" to null, convert back
+      if value == null:
+        value = "None"
+      # Some keys are sent as true/false, which both int() eval to 0
+      if key == "true":
+        key = "1"
+      elif key == "false":
+        key = "0"
+      # The default interpretation uses strings as keys, convert to ints or floats
+      s.options[cvrt.call_func(key)] = value
     # The default brightness settings include percent signs, update them for string printing
     if s.label == "brightness":
       for key in s.options.keys():
         s.options[key] = s.options[key].replace("%", "%%")
-    settings[option[0]] = s
-
+    if not settings.has(s.type):
+      settings[s.type] = {}
+    settings[s.type][option[0]] = s
 
 ## Receive an integer value and return a comma-separated string
 static func comma_sep(n: int) -> String:
@@ -160,3 +181,12 @@ static func comma_sep(n: int) -> String:
 ## formatted with an "s" if the number is anything other than 1
 static func pluralize(template: String, val: int) -> String:
   return template % ("" if val == 1 else "s")
+
+static func to_int(x) -> int:
+  return int(x)
+
+static func to_float(x) -> float:
+  return float(x)
+
+static func no_op(x):
+  return x
