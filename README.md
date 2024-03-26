@@ -29,7 +29,11 @@ Godot BCP Server provides base classes for two Autoload instances: **BCPServer**
 _This class manages the connection to MPF and all data coming in and out. For optimal performance, it runs
 in a separate thread from the main Godot instance._
 
-Create a new autoload script (e.g. _/autoloads/server.gd_) and add `extends BCPServer` to the top of the file.
+Create a new autoload script (e.g. _/autoloads/server.gd_) and add `extends BCPServer` to the top of the file. You can then set class variables and override
+class methods. In your Project Settings > AutoLoad, add your script as an autoload with the name "Server".
+
+**Note:** The Game autoload script (see MPFGame below) must be listed _before_ the Server autoload
+script, because the Server is dependent on the Game.
 
 ### Method `_init() -> void`
 The init method allows you to configure the base setup of the server. There are
@@ -174,7 +178,11 @@ pack specified (i.e. call `get_tree().change_scene_to(scene_pck)` on the main th
 _The Game class provides access to player variables, machine variables, settings, and active modes._
 
 Create a new autoload script (e.g. _/autoloads/game.gd_) and add `tool` and
-`extends MPFGame` to the top of the file.
+`extends MPFGame` to the top of the file. You can customize the class variables
+and override class methods as described below. In your Project Settings > AutoLoad add your script with the name "Game".
+
+**Note:** The Game autoload script must be listed _before_ the Server autoload
+script (see BCPServer above), because the Server is dependent on the Game.
 
 ### Method `_init() -> void:`
 You can initialize anything you need here.
